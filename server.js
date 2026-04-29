@@ -1,34 +1,24 @@
-// Load environment variables from .env file
-require("dotenv").config();
-
-// Import students routes file
-const studentsRouter = require('./students');
-
-// Import required packages
+require("dotenv").config();//Load environment variables from .env file
+const studentsRouter = require('./students');//Import students routes file
+//Import required packages
 const express = require("express");
 const cors = require("cors");
+const app = express();//Create Express app
 
-// Create Express app
-const app = express();
+app.use(cors());//Enable CORS so frontend can communicate with backend
 
-// Enable CORS so frontend can communicate with backend
-app.use(cors());
+app.use(express.json());//Allow server to accept JSON data from requests (e.g., forms)
 
-// Allow server to accept JSON data from requests (e.g., forms)
-app.use(express.json());
+app.use('/students', studentsRouter);//Connect students routes to '/students' endpoint
 
-// Connect students routes to '/students' endpoint
-// Example: /students, /students/:id
-app.use('/students', studentsRouter);
-
-// Test route to check if backend is running
+//Test route to check if backend is running
 app.get("/",(req, res)=>{
   res.send("Backend working");
 });
-// Set port from environment variable or default to 5000
+//Set port from environment variable or default to 5000
 const PORT = process.env.PORT||5000;
 
-// Start server and listen on the specified port
+//Start server and listen on the specified port
 app.listen(PORT,()=>{
   console.log("Server running on port"+ PORT);
 });

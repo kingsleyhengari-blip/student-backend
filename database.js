@@ -1,7 +1,7 @@
 const Database = require('better-sqlite3');
 const database = new Database('students.db');
 
-// CREATE TABLES (no serialize needed)
+//CREATE TABLES 
 database.prepare(`
   CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +14,6 @@ database.prepare(`
     phone TEXT
   )
 `).run();
-
 database.prepare(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,5 +21,4 @@ database.prepare(`
     password TEXT
   )
 `).run();
-
 module.exports = database;
