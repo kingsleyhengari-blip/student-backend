@@ -4,21 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "start": "node server.js",
-  "postinstall": "npm rebuild sqlite3"
-},
+    "start": "node server.js",
+    "postinstall": "npm rebuild sqlite3"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.9.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
+    "express": "^5.2.1"
   },
   "engines": {
-  "node": "18.x"
-}
+    "node": "18.x"
+  }
 }
