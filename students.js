@@ -1,170 +1,137 @@
-// Import Express framework
-const express = require('express');
+const express = require('express');//Import Express framework
+const router = express.Router();//Create a router object to define routes
+const db = require('./database');//Import database connection
+const bcrypt = require("bcrypt");//Import bcrypt for password hashing (security)
 
-// Create a router object to define routes
-const router = express.Router();
+//GET all students
+router.get('/',(req,res)=>{
+  //Run SQL query to get all students
+  db.all("SELECT * FROM students",(err,rows) =>{
 
-// Import database connection
-const db = require('./database');
+    //If error occurs, send server error response
+    if(err) return res.status(500).json({ error: err.message });
 
-// Import bcrypt for password hashing (security)
-const bcrypt = require("bcrypt");
-
-// GET all students
-router.get('/', (req, res) => {
-  // Run SQL query to get all students
-  db.all("SELECT * FROM students", (err, rows) => {
-
-    // If error occurs, send server error response
-    if (err) return res.status(500).json({ error: err.message });
-
-    // Send all student records as JSON
+    //Send all student records as JSON
     res.json(rows);
   });
 });
-
-// POST add student
-router.post('/', (req, res) => {
-
-// Extract student data from request body (frontend form)
-const { name, course, year, email, gender, studentId, phone } = req.body;
-
-// Insert new student into database
+//POST add student
+router.post('/',(req,res)=>{
+//Extract student data from request body (frontend form)
+const { name, course, year, email, gender, studentId, phone} = req.body;
+//Insert new student into database
 db.run(
    "INSERT INTO students (name, course, year, email, gender, studentId, phone) VALUES (?, ?, ?, ?, ?, ?, ?)",
-
-    // Values to insert into the database
+    //Values to insert into the database
     [name, course, year, email, gender, studentId, phone],
 
-    function (err) {
+    function(err){
+      //If error occurs, return error message
+      if(err) return res.status(500).json({ error: err.message });
 
-      // If error occurs, return error message
-      if (err) return res.status(500).json({ error: err.message });
-
-      // Send success response with the new student's ID
+      //Send success response with the new student's ID
       res.json({ message: "Student added", id: this.lastID });
     }
   );
 });
-
-// UPDATE student (optional but good)
-
-// This is another DELETE route (duplicate)
-// It also deletes a student but includes console logs for debugging
-router.delete('/:id', (req, res) => {
-
-  // Log the ID being deleted (for debugging)
-  console.log("DELETE request ID:", req.params.id);
+//delete student
+router.delete('/:id', (req, res)=>{
+  //Log the ID being deleted (for debugging)
+  console.log("DELETE request ID:",req.params.id);
 
   db.run(
     "DELETE FROM students WHERE id = ?",
     [req.params.id],
-    function (err) {
-
-      // Log error if it happens
-      if (err) {
-        console.log("Error:", err);
-        return res.status(500).json({ error: err.message });
+    function(err){
+      //Log error if it happens
+      if(err){
+        console.log("Error:",err);
+        return res.status(500).json({error: err.message});
       }
-
-      // Log how many rows were deleted
+      //Log how many rows were deleted
       console.log("Rows deleted:", this.changes);
 
-      // If no rows deleted, student does not exist
+      //If no rows deleted, student does not exist
       if (this.changes === 0) {
         return res.status(404).json({ message: "Student not found" });
       }
-
-      // Success message
+      //Success message
       res.json({ message: "Student deleted" });
     }
   );
 });
-
-// PUT update student
-router.put('/:id', (req, res) => {
-
-  // Get updated student data from request body
+//PUT update student
+router.put('/:id',(req, res)=>{
+  //Get updated student data from request body
   const { name, course, year, email, gender, studentId, phone } = req.body;
 
-  // Update student details in database
+  //Update student details in database
   db.run(
     `UPDATE students 
-     SET name=?, course=?, year=?, email=?, gender=?, studentId=?, phone=? 
+     SET name=?, course=?,year=?, email=?,gender=?, studentId=?, phone=? 
      WHERE id=?`,
 
-    // Values to update + ID from URL
+    //Values to update + ID from URL
     [name, course, year, email, gender, studentId, phone, req.params.id],
 
-    function (err) {
-
-      // Handle error
+    function(err){
+      //Handle error
       if (err) return res.status(500).json({ error: err.message });
-
-      // Success response
+      //Success response
       res.json({ message: "Student updated" });
     }
   );
 });
+//REGISTER user
+router.post('/register',async(req, res)=>{
+  //Get username and password from request body
+  const {username, password} = req.body;
 
-// REGISTER user
-router.post('/register', async (req, res) => {
-
-  // Get username and password from request body
-  const { username, password } = req.body;
-
-  // Hash the password for security (never store plain passwords)
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Insert new user into database
+  //Hash the password for security (never store plain passwords)
+  const hashedPassword = await bcrypt.hash(password,10);
+  //Insert new user into database
   db.run(
-    "INSERT INTO users (username, password) VALUES (?, ?)",
+    "INSERT INTO users (username, password) VALUES (?,?)",
     [username, hashedPassword],
-    function (err) {
-      // Handle error
-      if (err) {
-        return res.status(500).json({ error: err.message });
+    function(err){
+      //Handle error
+      if(err){
+        return res.status(500).json({error: err.message});
       }
-      // Success response
-      res.json({ message: "User registered" });
+      //Success response
+      res.json({ message:"User registered"});
     }
   );
 });
-
-// LOGIN user
-router.post('/login', async (req, res) => {
-
-  // Get login details from request body
-  const { username, password } = req.body;
-
-  // Find user in database
+//LOGIN user
+router.post('/login', async (req, res)=>{
+  //Get login details from request body
+  const { username, password }= req.body;
+  //Find user in database
   db.get(
     "SELECT * FROM users WHERE username = ?",
     [username],
     async (err, user) => {
-
-      // Handle database error
-      if (err) {
-        return res.status(500).json({ error: err.message });
+      //Handle database error
+      if(err){
+        return res.status(500).json({error: err.message});
       }
 
-      // If user not found
+      //If user not found
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid credentials"});
       }
-
-      // Compare entered password with hashed password
+      //Compare entered password with hashed password
       const isMatch = await bcrypt.compare(password, user.password);
 
-      // If password is incorrect
+      //If password is incorrect
       if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid credentials"});
       }
-
-      // Login success
-      res.json({ message: "Login successful", user });
+      //Login success
+      res.json({ message: "Login successful", user});
     }
   );
 });
-// Export router so it can be used in server.js
+//Export router so it can be used in server.js
 module.exports = router;
